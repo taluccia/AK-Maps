@@ -1,0 +1,70 @@
+---
+title: "AK-Map"
+author: "Anna Talucci"
+date: "1/22/2020"
+output: html_document
+---
+
+# Packages
+```{r}
+  library(leaflet)
+  library(dplyr)
+  library(tidyr)
+  library(ggplot2)
+  library(DT)
+library(sp)
+  library(sf)
+  library(ggmap) # devtools::install_github("dkahle/ggmap")
+library(ggrepel)
+
+library(raster)
+library(rgdal)
+library(rasterVis)
+library(RColorBrewer)
+library(cowplot)
+library(ggspatial)
+library(maps)
+```
+
+
+```{r}
+ak_sf <- st_read(
+  "../data/AK-state/GU_StateOrTerritory.shp")
+```
+
+```{r}
+ak_sp = readOGR("../data/AK-state/GU_StateOrTerritory.shp", "GU_StateOrTerritory") 
+```
+```{r}
+plot(ak_sp)
+```
+
+
+```{r}
+st_crs(ak_sf)
+
+```
+
+
+
+```{r}
+ak_sp_ee = spTransform(ak_sp, CRS( "+proj=laea +lat_0=90 +lon_0=0 +x_0=0 +y_0=0 +ellps=WGS84 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs"))
+```
++proj=aea +lat_1=55 +lat_2=65 +lat_0=50 +lon_0=-154 +x_0=0 +y_0=0 +ellps=GRS80 +datum=NAD83 +units=m +no_defs 
+
+
+```{r}
+ak_sp_3338 = spTransform(ak_sp, CRS( "+proj=aea +lat_1=55 +lat_2=65 +lat_0=50 +lon_0=-154 +x_0=0 +y_0=0 +ellps=GRS80 +datum=NAD83 +units=m +no_defs"))
+```
+
+```{r}
+ak_ee = st_transform(ak, CRS( "+proj=laea +lat_0=90 +lon_0=0 +x_0=0 +y_0=0 +ellps=WGS84 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs"))
+```
+
+```{r}
+plot(ak_sp_ee)
+```
+
+```{r}
+plot(ak_sp_3338)
+```
