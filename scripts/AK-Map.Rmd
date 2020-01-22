@@ -68,3 +68,39 @@ plot(ak_sp_ee)
 ```{r}
 plot(ak_sp_3338)
 ```
+
+
+entiako = raster("../raster/RdNBR/entiako_Rdnbr.tif")
+```{r}
+ak_raster = raster ("../data/raster/S2_AK-2.tif")
+```
+
+```{r}
+summary(ak_raster)
+structure(ak_raster)
+```
+
+```{r}
+plot(ak_raster)
+```
+
+
+```{r}
+ak_stack <- stack("../data/raster/S2_AK-2.tif")
+```
+
+```{r}
+ak_stack
+```
+
+```{r}
+ak_stack@layers
+```
+{bands: ['B12', 'B11', 'B4'], min: 0, max: 1, gamma: 1.5}
+```{r}
+plotRGB(ak_stack,
+        r = 1, g = 2, b = 3,
+        scale = 800,
+        stretch = "lin")
+```
+
