@@ -6,7 +6,7 @@ output: html_document
 ---
 
 # Packages
-```{r}
+```{r include=FALSE}
   library(leaflet)
   library(dplyr)
   library(tidyr)
@@ -16,7 +16,7 @@ library(sp)
   library(sf)
   library(ggmap) # devtools::install_github("dkahle/ggmap")
 library(ggrepel)
-
+library(RStoolbox)
 library(raster)
 library(rgdal)
 library(rasterVis)
@@ -25,7 +25,26 @@ library(cowplot)
 library(ggspatial)
 library(maps)
 ```
+- UL -159.2085, 71.3877
+- UR -153.6549, 71.3877
+- LR -153.6549, 70.3104
+- LL -159.2085, 70.3104
 
+```{r}
+
+(insetrect <- data.frame(xmin = -153.6549, xmax = -159.2085,
+    ymin = 70.3104, ymax = 71.3877))
+```
+
+Utqiavik, AK (AKA Barrow, AK)
+```{r}
+labs <- tibble(
+  long = c(-156.7886),
+  lat = c(71.2906),
+  names = ("Utqiagvik")) 
+```
+
+# AK Vector
 
 ```{r}
 ak_sf <- st_read(
@@ -58,21 +77,88 @@ ak_sp_3338 = spTransform(ak_sp, CRS( "+proj=aea +lat_1=55 +lat_2=65 +lat_0=50 +l
 ```
 
 ```{r}
-ak_ee = st_transform(ak, CRS( "+proj=laea +lat_0=90 +lon_0=0 +x_0=0 +y_0=0 +ellps=WGS84 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs"))
+ak_ee = st_transform(ak_sf, CRS( "+proj=laea +lat_0=90 +lon_0=0 +x_0=0 +y_0=0 +ellps=WGS84 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs"))
+```
+
+
+```{r}
+ak_sf_eeak = st_transform(ak_sf, CRS( "+proj=aea +lat_1=55 +lat_2=65 +lat_0=50 +lon_0=-154 +x_0=0 +y_0=0 +datum=NAD83 +units=m +no_defs"))
+```
+
++proj=aea +lat_1=55 +lat_2=65 +lat_0=50 +lon_0=-154 +x_0=0 +y_0=0 +ellps=GRS80 +datum=NAD83 +units=m +no_defs 
++proj=aea +lat_1=55 +lat_2=65 +lat_0=50 +lon_0=-154 +x_0=0 +y_0=0 +datum=NAD83 +units=m +no_defs 
+
+```{r}
+ak_sp_eeak = spTransform(ak_sp, CRS( "+proj=aea +lat_1=55 +lat_2=65 +lat_0=50 +lon_0=-154 +x_0=0 +y_0=0 +datum=NAD83 +units=m +no_defs"))
+```
+
+
+```{r}
+ak_sp_3338 = spTransform(ak_sp, CRS( "+proj=aea +lat_1=55 +lat_2=65 +lat_0=50 +lon_0=-154 +x_0=0 +y_0=0 +ellps=GRS80 +datum=NAD83 +units=m +no_defs"))
 ```
 
 ```{r}
 plot(ak_sp_ee)
 ```
-
+EPSG 3338 NAD83 / Alaska Albers
 ```{r}
 plot(ak_sp_3338)
 ```
-
-
-entiako = raster("../raster/RdNBR/entiako_Rdnbr.tif")
+Alaska Albers Equal Area Conic
 ```{r}
-ak_raster = raster ("../data/raster/S2_AK-2.tif")
+plot(ak_sp_eeak)
+```
+```{r}
+structure(ak_sf_eeak)
+```
+
+```{r}
+map_ak1 = ggplot() + 
+  geom_sf(data = ak_sf_eeak, fill = "#E8E8E8", color = "black") +
+  geom_rect(data = insetrect, aes(xmin = xmin, xmax = xmax, ymin = ymin, ymax = ymax), alpha = 0, colour = "#000080", size = 1.5, linetype = 1) +
+  xlab("")+ylab("")+
+  coord_sf() +
+  theme_void() +
+ # add a bounding box so that will border the inset
+ theme(panel.background = element_rect(colour = "black", fill = "white", size = 0.5))
+
+
+map_ak1
+```
+```{r}
+map_ak2 = ggplot() + 
+  geom_sf(data = ak_sf, fill = "#E8E8E8", color = "black") +
+  geom_rect(data = insetrect, aes(xmin = xmin, xmax = xmax, ymin = ymin, ymax = ymax), alpha = 0, colour = "#000080", size = 1.5, linetype = 1) +
+  xlab("")+ylab("")+
+  coord_sf() +
+  theme_void() +
+ # add a bounding box so that will border the inset
+ theme(panel.background = element_rect(colour = "black", fill = "white", size = 0.5))
+
+
+map_ak2
+```
+# AK Raster Data
+
+
+
+```{r}
+ak_raster = raster("../data/raster/S2_AK-2.tif")
+```
+
+```{r}
+projection(ak_raster)
+```
+
+```{r}
+newproj = "+proj=aea +lat_1=55 +lat_2=65 +lat_0=50 +lon_0=-154 +x_0=0 +y_0=0 +ellps=GRS80 +datum=NAD83 +units=m +no_defs"
+```
+
+
+```{r}
+ak_raster_3338 <- projectRaster(ak_raster, crs=newproj)
+
+
 ```
 
 ```{r}
@@ -82,6 +168,10 @@ structure(ak_raster)
 
 ```{r}
 plot(ak_raster)
+```
+
+```{r}
+plot(ak_raster_3338)
 ```
 
 
@@ -96,11 +186,53 @@ ak_stack
 ```{r}
 ak_stack@layers
 ```
+
+```{r}
+ak_stack_3338 <- projectRaster(ak_stack, crs=newproj)
+```
+```{r}
+ak_stack_3338@layers
+
+```
+
+
 {bands: ['B12', 'B11', 'B4'], min: 0, max: 1, gamma: 1.5}
 ```{r}
 plotRGB(ak_stack,
         r = 1, g = 2, b = 3,
-        scale = 800,
         stretch = "lin")
+
+```
+```{r}
+plot
+plotRGB(ak_stack,
+        r = 1, g = 2, b = 3,
+        stretch = "lin")
+
+```
+
+# UGH FIGURE
+```{r}
+
+(insetrect <- data.frame(xmin = -153.6549, xmax = -159.2085,
+    ymin = 70.3104, ymax = 71.3877))
+```
+
+
+```{r}
+p = ggplot() + 
+  geom_sf(data = ak_sf_eeak, fill = "#E8E8E8", color = "black") +
+  xlab("")+ylab("")+
+  coord_sf() +
+  theme_void() 
+p
+```
+
+
+```{r}
+
+  
+ggRGB(ak_stack, r = 1, g = 2, b = 3, stretch = "lin", ggLayer = TRUE) 
+  
 ```
 
